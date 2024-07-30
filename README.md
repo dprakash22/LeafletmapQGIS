@@ -1,6 +1,6 @@
 Interactive Web Map with QGIS and QGIS2Web
 Abstract
-This project involves creating an interactive web map to visualize the locations of victims, LoRa devices, and sensor devices. Active LoRa devices are marked in green, while failed ones are marked in red. We will add layers using XYZ tiles, export the map using the QGIS2Web plugin, and modify the exported code to include labels and buttons. The goal is to present this information visually for easy user understanding.
+    This project involves creating an interactive web map to visualize the locations of victims, LoRa devices, and sensor devices. Active LoRa devices are marked in green, while failed ones are marked in red. We will add layers using XYZ tiles, export the map using the QGIS2Web plugin, and modify the exported code to include labels and buttons. The goal is to present this information visually for easy user understanding.
 
 Step-by-Step Guide
 Step 1: Install QGIS and QGIS2Web Plugin
