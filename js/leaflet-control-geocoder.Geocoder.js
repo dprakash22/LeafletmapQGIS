@@ -4,6 +4,7 @@ var L = (typeof window !== "undefined" ? window['L'] : typeof global !== "undefi
 	Nominatim = _dereq_('./geocoders/nominatim')["class"];
 
 	var myresult="chennai";
+	var markers = {};
 
 	function createCustomIcon(imageUrl) {
 		return new L.Icon({
@@ -47,41 +48,35 @@ var L = (typeof window !== "undefined" ? window['L'] : typeof global !== "undefi
 		});
 	  }
 
-	setInterval(async () => {
+
+	  setInterval(async () => {
 		try {
 			const res = await fetch("https://atn-backend-w4fh.onrender.com/user/sensorqgis");
 			const datas = await res.json();
 			console.log(datas, "this my datas");
-
+	
 			Object.entries(datas["data"]).forEach(([key, value]) => {
 				colors[`color${key}`] = value;
 			});
-
-			console.log(colors,"loop");
-			// updatePlaces(); // Update places based on the new colors
+	
+			console.log(colors, "loop");
+	
+			// Clear existing markers
+			Object.values(markers).forEach(marker => map.removeLayer(marker));
+			markers = {};
+	
+			// Update and add new markers
 			places.forEach(function(place) {
-				addMarker(place.id, place.lat, place.lng, colors[`color${place.name[0]}`]==1? `${place.name[0]}lora-Active` : `${place.name[0]}lora-Failed`, colors[`color${place.name[0]}`]==1? 'https://cdn-icons-png.freepik.com/256/15092/15092032.png?ga=GA1.1.1798749253.1718557894&semt=ais_hybrid':'https://cdn-icons-png.freepik.com/256/7506/7506897.png?ga=GA1.1.1798749253.1718557894&semt=ais_hybrid' );
-			})
+				var newName = colors[`color${place.name[0]}`] == 1 ? `${place.name[0]}LoRa-Active` : `${place.name[0]}LoRa-Failed`;
+				var newIcon = colors[`color${place.name[0]}`] == 1 ? 'https://cdn-icons-png.freepik.com/256/15092/15092032.png?ga=GA1.1.1798749253.1718557894&semt=ais_hybrid' : 'https://cdn-icons-png.freepik.com/256/7506/7506897.png?ga=GA1.1.1798749253.1718557894&semt=ais_hybrid';
+				addMarker(place.id, place.lat, place.lng, newName, newIcon);
+			});
 		} catch (error) {
 			console.error('Error fetching data:', error);
 		}
 	}, 30000);
-
 	
-
-   
 	// Function to add a marker to the map with a custom icon
-	// function addMarker(id, lat, lng, name, iconUrl) {
-	// 	var customIcon = createCustomIcon(iconUrl);
-	// 	var popupContent = `<div>
-    //                     <p>${name}</p>
-    //                     <button onclick="sendDataToBackend(${id}, '${name}', ${lat}, ${lng})">Send Data</button>
-    //                   </div>`;
-	// 	L.marker([lat, lng], { icon: customIcon }).addTo(map)
-	// 		.bindPopup(popupContent)
-	// 		.openPopup();
-	// }
-
 	function addMarker(id, lat, lng, name, iconUrl) {
 		var customIcon = createCustomIcon(iconUrl);
 		var marker = L.marker([lat, lng], { icon: customIcon }).addTo(map);
@@ -94,7 +89,42 @@ var L = (typeof window !== "undefined" ? window['L'] : typeof global !== "undefi
 		};
 		popupContent.appendChild(button);
 		marker.bindPopup(popupContent).openPopup();
+		markers[id] = marker; // Store marker in the markers map
 	}
+
+	// setInterval(async () => {
+	// 	try {
+	// 		const res = await fetch("https://atn-backend-w4fh.onrender.com/user/sensorqgis");
+	// 		const datas = await res.json();
+	// 		console.log(datas, "this my datas");
+
+	// 		Object.entries(datas["data"]).forEach(([key, value]) => {
+	// 			colors[`color${key}`] = value;
+	// 		});
+
+	// 		console.log(colors,"loop");
+	// 		// updatePlaces(); // Update places based on the new colors
+	// 		places.forEach(function(place) {
+	// 			addMarker(place.id, place.lat, place.lng, colors[`color${place.name[0]}`]==1? `${place.name[0]}lora-Active` : `${place.name[0]}lora-Failed`, colors[`color${place.name[0]}`]==1? 'https://cdn-icons-png.freepik.com/256/15092/15092032.png?ga=GA1.1.1798749253.1718557894&semt=ais_hybrid':'https://cdn-icons-png.freepik.com/256/7506/7506897.png?ga=GA1.1.1798749253.1718557894&semt=ais_hybrid' );
+	// 		})
+	// 	} catch (error) {
+	// 		console.error('Error fetching data:', error);
+	// 	}
+	// }, 30000);
+
+	// function addMarker(id, lat, lng, name, iconUrl) {
+	// 	var customIcon = createCustomIcon(iconUrl);
+	// 	var marker = L.marker([lat, lng], { icon: customIcon }).addTo(map);
+	// 	var popupContent = document.createElement('div');
+	// 	popupContent.innerHTML = `<p>${name}</p>`;
+	// 	var button = document.createElement('button');
+	// 	button.textContent = 'view data in Grafana';
+	// 	button.onclick = function() {
+	// 		sendDataToBackend(id, name, lat, lng);
+	// 	};
+	// 	popupContent.appendChild(button);
+	// 	marker.bindPopup(popupContent).openPopup();
+	// }
 
 	
 
@@ -128,7 +158,7 @@ module.exports = {
 			try {
 				const url = window.location.href;
 				console.log("URL:", url);
-				const place = url.split("https://dprakash22.github.io/LeafletmapQGIS/")[1].split("#")[0].split("=")[1];
+				const place = url.split("http://localhost:8000/")[1].split("#")[0].split("=")[1];
 				console.log("Extracted place:", place);
 				myresult = place;
 				this._geocode();
