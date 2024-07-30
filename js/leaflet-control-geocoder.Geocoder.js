@@ -158,7 +158,7 @@ module.exports = {
 			try {
 				const url = window.location.href;
 				console.log("URL:", url);
-				const place = url.split("http://localhost:8000/")[1].split("#")[0].split("=")[1];
+				const place = url.split("https://dprakash22.github.io/LeafletmapQGIS/")[1].split("#")[0].split("=")[1];
 				console.log("Extracted place:", place);
 				myresult = place;
 				this._geocode();
