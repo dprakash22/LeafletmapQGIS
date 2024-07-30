@@ -24,15 +24,32 @@ var L = (typeof window !== "undefined" ? window['L'] : typeof global !== "undefi
 
 	 // Coordinates and names of the places with custom icon URLs
 	 var places = [
-		{ name: '5LoRa-Active', lat: 13.045870186642654, lng: 80.19507229655638, icon: 'https://cdn-icons-png.freepik.com/256/15092/15092032.png?ga=GA1.1.1798749253.1718557894&semt=ais_hybrid' },
-		{ name: '2LoRa-Active', lat: 13.11342152384103, lng: 80.10902922454527, icon: 'https://cdn-icons-png.freepik.com/256/15092/15092032.png?ga=GA1.1.1798749253.1718557894&semt=ais_hybrid' },
-		{ name: '4LoRa-Active', lat: 13.201154377410116, lng: 80.18381346464102, icon: 'https://cdn-icons-png.freepik.com/256/15092/15092032.png?ga=GA1.1.1798749253.1718557894&semt=ais_hybrid' },
+		{ id:'5', name: '5LoRa-Active', lat: 13.045870186642654, lng: 80.19507229655638, icon: 'https://cdn-icons-png.freepik.com/256/15092/15092032.png?ga=GA1.1.1798749253.1718557894&semt=ais_hybrid' },
+		{ id:'2', name: '2LoRa-Active', lat: 13.11342152384103, lng: 80.10902922454527, icon: 'https://cdn-icons-png.freepik.com/256/15092/15092032.png?ga=GA1.1.1798749253.1718557894&semt=ais_hybrid' },
+		{ id:'4', name: '4LoRa-Active', lat: 13.201154377410116, lng: 80.18381346464102, icon: 'https://cdn-icons-png.freepik.com/256/15092/15092032.png?ga=GA1.1.1798749253.1718557894&semt=ais_hybrid' },
 	];
 
+	function sendDataToBackend(id, name, lat, lng) {
+		console.log("hi")
+		fetch('http://your-backend-url/marker-clicked', {
+		  method: 'POST',
+		  headers: {
+			'Content-Type': 'application/json'
+		  },
+		  body: JSON.stringify({ id: id, name: name, lat: lat, lng: lng })
+		})
+		.then(response => response.json())
+		.then(data => {
+		  console.log('Data sent successfully:', data);
+		})
+		.catch((error) => {
+		  console.error('Error sending data:', error);
+		});
+	  }
 
 	setInterval(async () => {
 		try {
-			const res = await fetch("http://localhost:5000/user/sensorqgis");
+			const res = await fetch("https://atn-backend-w4fh.onrender.com/user/sensorqgis");
 			const datas = await res.json();
 			console.log(datas, "this my datas");
 
@@ -43,22 +60,43 @@ var L = (typeof window !== "undefined" ? window['L'] : typeof global !== "undefi
 			console.log(colors,"loop");
 			// updatePlaces(); // Update places based on the new colors
 			places.forEach(function(place) {
-				addMarker(place.lat, place.lng,colors[`color${place.name[0]}`]==1? `${place.name[0]}lora-Active` : `${place.name[0]}lora-Failed`, colors[`color${place.name[0]}`]==1? 'https://cdn-icons-png.freepik.com/256/15092/15092032.png?ga=GA1.1.1798749253.1718557894&semt=ais_hybrid':'https://cdn-icons-png.freepik.com/256/7506/7506897.png?ga=GA1.1.1798749253.1718557894&semt=ais_hybrid' );
+				addMarker(place.id, place.lat, place.lng, colors[`color${place.name[0]}`]==1? `${place.name[0]}lora-Active` : `${place.name[0]}lora-Failed`, colors[`color${place.name[0]}`]==1? 'https://cdn-icons-png.freepik.com/256/15092/15092032.png?ga=GA1.1.1798749253.1718557894&semt=ais_hybrid':'https://cdn-icons-png.freepik.com/256/7506/7506897.png?ga=GA1.1.1798749253.1718557894&semt=ais_hybrid' );
 			})
 		} catch (error) {
 			console.error('Error fetching data:', error);
 		}
 	}, 30000);
 
+	
+
    
 	// Function to add a marker to the map with a custom icon
-	function addMarker(lat, lng, name, iconUrl) {
+	// function addMarker(id, lat, lng, name, iconUrl) {
+	// 	var customIcon = createCustomIcon(iconUrl);
+	// 	var popupContent = `<div>
+    //                     <p>${name}</p>
+    //                     <button onclick="sendDataToBackend(${id}, '${name}', ${lat}, ${lng})">Send Data</button>
+    //                   </div>`;
+	// 	L.marker([lat, lng], { icon: customIcon }).addTo(map)
+	// 		.bindPopup(popupContent)
+	// 		.openPopup();
+	// }
+
+	function addMarker(id, lat, lng, name, iconUrl) {
 		var customIcon = createCustomIcon(iconUrl);
-		L.marker([lat, lng], { icon: customIcon }).addTo(map)
-			.bindPopup(name)
-			.openPopup();
+		var marker = L.marker([lat, lng], { icon: customIcon }).addTo(map);
+		var popupContent = document.createElement('div');
+		popupContent.innerHTML = `<p>${name}</p>`;
+		var button = document.createElement('button');
+		button.textContent = 'view data in Grafana';
+		button.onclick = function() {
+			sendDataToBackend(id, name, lat, lng);
+		};
+		popupContent.appendChild(button);
+		marker.bindPopup(popupContent).openPopup();
 	}
 
+	
 
 module.exports = {
 	"class": L.Control.extend({
